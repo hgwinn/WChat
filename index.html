@@ -1,0 +1,2121 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>WChat - Nhắn tin</title>
+
+<style>
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+    font-family:Arial,Helvetica,sans-serif;
+}
+
+:root{
+    --bg:#0b0f19;
+    --panel:#111827;
+    --panel2:#172033;
+    --input:#202a3b;
+    --text:#fff;
+    --muted:#9ca3af;
+    --primary:#5865f2;
+    --primary2:#7c3aed;
+    --danger:#ef4444;
+    --success:#22c55e;
+    --border:rgba(255,255,255,.08);
+}
+
+body{
+    background:var(--bg);
+    color:var(--text);
+    overflow:hidden;
+}
+
+/* =========================
+   LOADING
+========================= */
+
+#loading{
+    position:fixed;
+    inset:0;
+    background:#070a12;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    z-index:9999;
+}
+
+.logo{
+    font-size:65px;
+    font-weight:900;
+    letter-spacing:-5px;
+    background:linear-gradient(90deg,#5865f2,#a855f7,#ec4899);
+    -webkit-background-clip:text;
+    color:transparent;
+    margin-bottom:35px;
+}
+
+.loadingBox{
+    width:320px;
+}
+
+.loadingBar{
+    width:100%;
+    height:8px;
+    background:#202637;
+    border-radius:20px;
+    overflow:hidden;
+}
+
+.loadingProgress{
+    width:0%;
+    height:100%;
+    background:linear-gradient(90deg,#5865f2,#a855f7,#ec4899);
+    transition:.08s;
+}
+
+.loadingPercent{
+    text-align:center;
+    margin-top:12px;
+    color:#aaa;
+}
+
+/* =========================
+   AUTH
+========================= */
+
+#auth{
+    display:none;
+    height:100vh;
+    align-items:center;
+    justify-content:center;
+    background:
+        radial-gradient(circle at top left,#30208055,transparent 40%),
+        radial-gradient(circle at bottom right,#db277755,transparent 35%),
+        #090d17;
+}
+
+.authCard{
+    width:410px;
+    max-width:92%;
+    padding:38px;
+    background:rgba(17,24,39,.88);
+    backdrop-filter:blur(20px);
+    border:1px solid var(--border);
+    border-radius:25px;
+    box-shadow:0 30px 100px #0008;
+}
+
+.authLogo{
+    text-align:center;
+    font-size:45px;
+    font-weight:900;
+    background:linear-gradient(90deg,#5865f2,#a855f7);
+    -webkit-background-clip:text;
+    color:transparent;
+    margin-bottom:30px;
+}
+
+.authTitle{
+    font-size:27px;
+    margin-bottom:20px;
+}
+
+.input{
+    width:100%;
+    padding:14px 15px;
+    margin:7px 0;
+    border:1px solid var(--border);
+    background:var(--input);
+    color:white;
+    border-radius:12px;
+    outline:none;
+    font-size:15px;
+}
+
+.input:focus{
+    border-color:var(--primary);
+}
+
+.btn{
+    width:100%;
+    padding:14px;
+    margin-top:12px;
+    border:none;
+    border-radius:12px;
+    background:linear-gradient(90deg,var(--primary),var(--primary2));
+    color:white;
+    font-size:16px;
+    font-weight:bold;
+    cursor:pointer;
+    transition:.2s;
+}
+
+.btn:hover{
+    transform:translateY(-1px);
+    filter:brightness(1.1);
+}
+
+.smallNote{
+    color:var(--muted);
+    font-size:13px;
+    margin:18px 0 8px;
+    line-height:1.5;
+}
+
+.linkBtn{
+    border:none;
+    background:none;
+    color:#818cf8;
+    cursor:pointer;
+    font-weight:bold;
+    padding:5px 0;
+}
+
+.error{
+    color:#f87171;
+    font-size:13px;
+    margin:7px 0;
+    display:none;
+}
+
+.success{
+    color:#4ade80;
+    font-size:13px;
+    margin:7px 0;
+    display:none;
+}
+
+/* =========================
+   ID SETUP
+========================= */
+
+#setup{
+    display:none;
+    height:100vh;
+    align-items:center;
+    justify-content:center;
+    background:
+        radial-gradient(circle at 30% 30%,#312e8155,transparent 40%),
+        #090d17;
+}
+
+.setupCard{
+    width:430px;
+    max-width:92%;
+    padding:38px;
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:25px;
+}
+
+/* =========================
+   APP
+========================= */
+
+#app{
+    display:none;
+    height:100vh;
+}
+
+.app{
+    display:grid;
+    grid-template-columns:290px 1fr;
+    height:100vh;
+}
+
+/* Sidebar */
+
+.sidebar{
+    background:#0d1320;
+    border-right:1px solid var(--border);
+    display:flex;
+    flex-direction:column;
+}
+
+.sideHeader{
+    padding:20px;
+    font-size:23px;
+    font-weight:900;
+}
+
+.wchatSmall{
+    background:linear-gradient(90deg,#5865f2,#a855f7);
+    -webkit-background-clip:text;
+    color:transparent;
+}
+
+.search{
+    margin:0 15px 15px;
+    padding:12px 15px;
+    border:none;
+    border-radius:12px;
+    background:var(--input);
+    color:white;
+    outline:none;
+    width:calc(100% - 30px);
+}
+
+.chatList{
+    flex:1;
+    overflow:auto;
+    padding:5px 10px;
+}
+
+.chat{
+    padding:12px;
+    display:flex;
+    gap:12px;
+    align-items:center;
+    border-radius:12px;
+    cursor:pointer;
+    transition:.15s;
+}
+
+.chat:hover,
+.chat.active{
+    background:#1c2638;
+}
+
+.avatar{
+    width:45px;
+    height:45px;
+    min-width:45px;
+    border-radius:50%;
+    background:linear-gradient(135deg,#5865f2,#a855f7);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:bold;
+}
+
+.chatInfo{
+    min-width:0;
+}
+
+.chatName{
+    font-weight:bold;
+}
+
+.chatPreview{
+    color:#8993a5;
+    font-size:13px;
+    margin-top:3px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+.profile{
+    border-top:1px solid var(--border);
+    padding:13px;
+    display:flex;
+    gap:10px;
+    align-items:center;
+    cursor:pointer;
+}
+
+.profileText{
+    overflow:hidden;
+}
+
+.profileDisplay{
+    font-weight:bold;
+}
+
+.profileUsername{
+    color:#8993a5;
+    font-size:12px;
+}
+
+/* Main */
+
+.main{
+    display:flex;
+    flex-direction:column;
+    min-width:0;
+}
+
+.topbar{
+    height:65px;
+    display:flex;
+    align-items:center;
+    padding:0 20px;
+    border-bottom:1px solid var(--border);
+    background:#0d1320;
+    gap:12px;
+}
+
+.topAvatar{
+    width:38px;
+    height:38px;
+    border-radius:50%;
+    background:linear-gradient(135deg,#5865f2,#a855f7);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:bold;
+}
+
+.topName{
+    font-weight:bold;
+}
+
+.topStatus{
+    color:#4ade80;
+    font-size:12px;
+}
+
+.topActions{
+    margin-left:auto;
+    display:flex;
+    gap:7px;
+}
+
+.iconBtn{
+    width:40px;
+    height:40px;
+    border:none;
+    border-radius:10px;
+    background:var(--input);
+    color:white;
+    cursor:pointer;
+    font-size:18px;
+}
+
+.iconBtn:hover{
+    background:#2b3850;
+}
+
+/* Messages */
+
+.messages{
+    flex:1;
+    overflow-y:auto;
+    padding:25px;
+    display:flex;
+    flex-direction:column;
+    gap:9px;
+}
+
+.emptyChat{
+    margin:auto;
+    text-align:center;
+    color:#788397;
+}
+
+.emptyChat .big{
+    font-size:60px;
+    margin-bottom:15px;
+}
+
+.message{
+    max-width:70%;
+    padding:11px 14px;
+    border-radius:15px;
+    background:#202a3b;
+    align-self:flex-start;
+    line-height:1.45;
+    word-break:break-word;
+}
+
+.message.mine{
+    align-self:flex-end;
+    background:linear-gradient(135deg,#5865f2,#7c3aed);
+}
+
+.messageMeta{
+    font-size:10px;
+    opacity:.55;
+    margin-top:4px;
+}
+
+.fileMessage{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px;
+    background:#ffffff12;
+    border-radius:10px;
+}
+
+.fileIcon{
+    font-size:25px;
+}
+
+/* Composer */
+
+.composer{
+    padding:15px 20px;
+    border-top:1px solid var(--border);
+    display:flex;
+    gap:8px;
+    background:#0d1320;
+}
+
+.messageInput{
+    flex:1;
+    padding:13px 16px;
+    background:var(--input);
+    color:white;
+    border:none;
+    outline:none;
+    border-radius:13px;
+}
+
+.sendBtn{
+    width:48px;
+    border:none;
+    border-radius:13px;
+    background:var(--primary);
+    color:white;
+    cursor:pointer;
+    font-size:18px;
+}
+
+/* Search results */
+
+.searchResults{
+    position:absolute;
+    top:60px;
+    left:305px;
+    width:350px;
+    max-width:calc(100% - 330px);
+    background:#151d2c;
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:8px;
+    z-index:100;
+    display:none;
+    box-shadow:0 20px 50px #0008;
+}
+
+.result{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:11px;
+    border-radius:10px;
+    cursor:pointer;
+}
+
+.result:hover{
+    background:#222d40;
+}
+
+/* Modal */
+
+.modal{
+    position:fixed;
+    inset:0;
+    background:#0009;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:500;
+}
+
+.modalBox{
+    width:430px;
+    max-width:92%;
+    background:#151d2c;
+    border:1px solid var(--border);
+    border-radius:20px;
+    padding:25px;
+}
+
+.modalTitle{
+    font-size:22px;
+    font-weight:bold;
+    margin-bottom:20px;
+}
+
+.close{
+    float:right;
+    cursor:pointer;
+    color:#aaa;
+}
+
+/* Call UI */
+
+.callScreen{
+    position:fixed;
+    inset:0;
+    background:#05070c;
+    display:none;
+    z-index:1000;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+}
+
+.callAvatar{
+    width:130px;
+    height:130px;
+    border-radius:50%;
+    background:linear-gradient(135deg,#5865f2,#a855f7);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:50px;
+    font-weight:bold;
+    margin-bottom:20px;
+}
+
+.callName{
+    font-size:25px;
+    font-weight:bold;
+}
+
+.callStatus{
+    color:#9ca3af;
+    margin-top:8px;
+}
+
+.callButtons{
+    display:flex;
+    gap:15px;
+    margin-top:50px;
+}
+
+.callBtn{
+    width:60px;
+    height:60px;
+    border-radius:50%;
+    border:none;
+    color:white;
+    background:#202938;
+    font-size:22px;
+    cursor:pointer;
+}
+
+.callBtn.end{
+    background:#ef4444;
+}
+
+/* Mobile */
+
+@media(max-width:700px){
+    .app{
+        grid-template-columns:75px 1fr;
+    }
+
+    .sideHeader{
+        text-align:center;
+        font-size:0;
+    }
+
+    .sideHeader::after{
+        content:"W";
+        font-size:25px;
+        font-weight:900;
+        color:#818cf8;
+    }
+
+    .search{
+        margin:10px;
+        width:55px;
+        height:45px;
+        padding:10px;
+    }
+
+    .chatInfo,
+    .profileText{
+        display:none;
+    }
+
+    .chat{
+        justify-content:center;
+    }
+
+    .profile{
+        justify-content:center;
+    }
+
+    .searchResults{
+        left:85px;
+        max-width:calc(100% - 100px);
+    }
+
+    .message{
+        max-width:85%;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<!-- LOADING -->
+
+<div id="loading">
+    <div class="logo">WChat</div>
+
+    <div class="loadingBox">
+        <div class="loadingBar">
+            <div class="loadingProgress" id="progress"></div>
+        </div>
+        <div class="loadingPercent" id="percent">0%</div>
+    </div>
+</div>
+
+
+<!-- AUTH -->
+
+<div id="auth">
+
+    <div class="authCard">
+
+        <div class="authLogo">WChat</div>
+
+        <div id="loginPage">
+
+            <div class="authTitle">Đăng nhập</div>
+
+            <input
+                id="loginUsername"
+                class="input"
+                placeholder="Nhập tên người dùng"
+            >
+
+            <input
+                id="loginPassword"
+                class="input"
+                type="password"
+                placeholder="Ô nhập mật khẩu"
+            >
+
+            <div id="loginError" class="error">
+                Tên người dùng hoặc mật khẩu không chính xác
+            </div>
+
+            <button class="btn" onclick="login()">
+                Đăng nhập
+            </button>
+
+            <div class="smallNote">
+                Nếu chưa có tài khoản, bạn có thể tạo tài khoản.
+            </div>
+
+            <button class="linkBtn" onclick="showRegister()">
+                Tạo tài khoản →
+            </button>
+
+        </div>
+
+
+        <div id="registerPage" style="display:none">
+
+            <div class="authTitle">Tạo tài khoản</div>
+
+            <input
+                id="regUsername"
+                class="input"
+                placeholder="Tên người dùng"
+            >
+
+            <input
+                id="regPassword"
+                class="input"
+                type="password"
+                placeholder="Mật khẩu"
+            >
+
+            <input
+                id="regPassword2"
+                class="input"
+                type="password"
+                placeholder="Xác nhận mật khẩu"
+            >
+
+            <div id="registerError" class="error"></div>
+
+            <button class="btn" onclick="register()">
+                Tạo tài khoản
+            </button>
+
+            <button class="linkBtn" onclick="showLogin()">
+                ← Quay lại đăng nhập
+            </button>
+
+        </div>
+
+    </div>
+</div>
+
+
+<!-- SETUP -->
+
+<div id="setup">
+
+    <div class="setupCard">
+
+        <div class="authLogo">WChat</div>
+
+        <div id="idStep">
+
+            <div class="authTitle">
+                Đặt ID người dùng của mình
+            </div>
+
+            <div class="smallNote">
+                ID này sẽ được sử dụng để người khác tìm và kết bạn với bạn.
+            </div>
+
+            <input
+                id="userId"
+                class="input"
+                placeholder="@idnguoidung"
+            >
+
+            <div id="idError" class="error"></div>
+
+            <button class="btn" onclick="saveId()">
+                Tiếp tục
+            </button>
+
+        </div>
+
+
+        <div id="displayStep" style="display:none">
+
+            <div class="authTitle">
+                Nhập tên hiển thị
+            </div>
+
+            <div class="smallNote">
+                Đây là tên mọi người sẽ nhìn thấy trong WChat.
+            </div>
+
+            <input
+                id="displayName"
+                class="input"
+                placeholder="Tên hiển thị"
+            >
+
+            <button class="btn" onclick="finishSetup()">
+                Xác nhận
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- APP -->
+
+<div id="app">
+
+    <div class="app">
+
+        <!-- SIDEBAR -->
+
+        <aside class="sidebar">
+
+            <div class="sideHeader">
+                <span class="wchatSmall">WChat</span>
+            </div>
+
+            <input
+                id="searchInput"
+                class="search"
+                placeholder="🔎 Tìm người dùng..."
+                oninput="searchUsers()"
+            >
+
+            <div id="chatList" class="chatList"></div>
+
+            <div class="profile" onclick="openProfile()">
+
+                <div id="myAvatar" class="avatar">
+                    ?
+                </div>
+
+                <div class="profileText">
+
+                    <div id="myDisplay" class="profileDisplay">
+                        Người dùng
+                    </div>
+
+                    <div id="myUsername" class="profileUsername">
+                        @user
+                    </div>
+
+                </div>
+
+            </div>
+
+        </aside>
+
+
+        <!-- MAIN -->
+
+        <main class="main">
+
+            <header class="topbar">
+
+                <div id="topAvatar" class="topAvatar">
+                    W
+                </div>
+
+                <div>
+
+                    <div id="topName" class="topName">
+                        Chưa chọn cuộc trò chuyện
+                    </div>
+
+                    <div id="topStatus" class="topStatus">
+                    </div>
+
+                </div>
+
+                <div class="topActions">
+
+                    <button
+                        class="iconBtn"
+                        onclick="startCall('voice')"
+                        title="Gọi thoại"
+                    >
+                        📞
+                    </button>
+
+                    <button
+                        class="iconBtn"
+                        onclick="startCall('video')"
+                        title="Gọi video"
+                    >
+                        📹
+                    </button>
+
+                    <button
+                        class="iconBtn"
+                        onclick="openChatInfo()"
+                        title="Thông tin"
+                    >
+                        ⓘ
+                    </button>
+
+                </div>
+
+            </header>
+
+
+            <section id="messages" class="messages">
+
+                <div class="emptyChat">
+
+                    <div class="big">💬</div>
+
+                    <h2>Chào mừng đến với WChat</h2>
+
+                    <p>
+                        Chọn một người để bắt đầu trò chuyện.
+                    </p>
+
+                </div>
+
+            </section>
+
+
+            <div class="composer">
+
+                <button
+                    class="iconBtn"
+                    onclick="document.getElementById('fileInput').click()"
+                >
+                    📎
+                </button>
+
+                <input
+                    type="file"
+                    id="fileInput"
+                    hidden
+                    onchange="sendFile()"
+                >
+
+                <button
+                    class="iconBtn"
+                    onclick="addEmoji()"
+                >
+                    😊
+                </button>
+
+                <input
+                    id="messageInput"
+                    class="messageInput"
+                    placeholder="Nhập tin nhắn..."
+                    onkeydown="handleEnter(event)"
+                >
+
+                <button
+                    class="sendBtn"
+                    onclick="sendMessage()"
+                >
+                    ➤
+                </button>
+
+            </div>
+
+        </main>
+
+    </div>
+
+</div>
+
+
+<!-- PROFILE MODAL -->
+
+<div id="profileModal" class="modal">
+
+    <div class="modalBox">
+
+        <span class="close" onclick="closeModal('profileModal')">
+            ✕
+        </span>
+
+        <div class="modalTitle">
+            Hồ sơ của tôi
+        </div>
+
+        <div style="text-align:center">
+
+            <div
+                id="modalAvatar"
+                class="avatar"
+                style="margin:auto;width:80px;height:80px;font-size:30px"
+            >
+                ?
+            </div>
+
+            <h2 id="modalDisplay" style="margin-top:15px">
+                User
+            </h2>
+
+            <p id="modalUsername" style="color:#9ca3af">
+                @user
+            </p>
+
+        </div>
+
+        <button
+            class="btn"
+            style="margin-top:25px"
+            onclick="logout()"
+        >
+            Đăng xuất
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- CHAT INFO -->
+
+<div id="chatInfoModal" class="modal">
+
+    <div class="modalBox">
+
+        <span class="close" onclick="closeModal('chatInfoModal')">
+            ✕
+        </span>
+
+        <div class="modalTitle">
+            Thông tin cuộc trò chuyện
+        </div>
+
+        <p style="color:#aaa;line-height:1.8">
+            🔒 Tin nhắn được bảo vệ<br>
+            🟢 Trạng thái online<br>
+            📎 Hỗ trợ tệp tối đa 1 GB<br>
+            📞 Gọi thoại<br>
+            📹 Gọi video<br>
+            ⭐ Ghim tin nhắn<br>
+            🔔 Thông báo
+        </p>
+
+    </div>
+
+</div>
+
+
+<!-- CALL -->
+
+<div id="callScreen" class="callScreen">
+
+    <div id="callAvatar" class="callAvatar">
+        W
+    </div>
+
+    <div id="callName" class="callName">
+        WChat User
+    </div>
+
+    <div id="callStatus" class="callStatus">
+        Đang gọi...
+    </div>
+
+    <div class="callButtons">
+
+        <button class="callBtn">
+            🎙️
+        </button>
+
+        <button class="callBtn">
+            🔊
+        </button>
+
+        <button
+            class="callBtn end"
+            onclick="endCall()"
+        >
+            📞
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- SEARCH RESULTS -->
+
+<div id="searchResults" class="searchResults"></div>
+
+
+<script>
+
+/* ======================================
+   DATABASE LOCAL
+====================================== */
+
+let users =
+    JSON.parse(localStorage.getItem("wchat_users") || "[]");
+
+let currentUser =
+    JSON.parse(localStorage.getItem("wchat_current") || "null");
+
+let chats =
+    JSON.parse(localStorage.getItem("wchat_chats") || "{}");
+
+let selectedUser = null;
+
+
+/* ======================================
+   LOADING
+====================================== */
+
+let progress = 0;
+
+let loader = setInterval(() => {
+
+    progress += Math.floor(Math.random() * 5) + 1;
+
+    if(progress >= 100){
+
+        progress = 100;
+
+        clearInterval(loader);
+
+        document.getElementById("progress").style.width =
+            "100%";
+
+        document.getElementById("percent").textContent =
+            "100%";
+
+        setTimeout(() => {
+
+            document.getElementById("loading").style.display =
+                "none";
+
+            if(currentUser){
+
+                if(currentUser.displayName){
+
+                    openApp();
+
+                }else{
+
+                    openSetup();
+
+                }
+
+            }else{
+
+                document.getElementById("auth").style.display =
+                    "flex";
+
+            }
+
+        },400);
+
+    }else{
+
+        document.getElementById("progress").style.width =
+            progress + "%";
+
+        document.getElementById("percent").textContent =
+            progress + "%";
+
+    }
+
+},60);
+
+
+/* ======================================
+   AUTH
+====================================== */
+
+function showRegister(){
+
+    document.getElementById("loginPage").style.display =
+        "none";
+
+    document.getElementById("registerPage").style.display =
+        "block";
+
+}
+
+function showLogin(){
+
+    document.getElementById("registerPage").style.display =
+        "none";
+
+    document.getElementById("loginPage").style.display =
+        "block";
+
+}
+
+
+function register(){
+
+    const username =
+        document.getElementById("regUsername").value
+        .trim()
+        .toLowerCase();
+
+    const password =
+        document.getElementById("regPassword").value;
+
+    const password2 =
+        document.getElementById("regPassword2").value;
+
+    const error =
+        document.getElementById("registerError");
+
+    error.style.display = "none";
+
+    if(username.length < 3){
+
+        error.textContent =
+            "Tên người dùng phải có ít nhất 3 ký tự";
+
+        error.style.display = "block";
+
+        return;
+    }
+
+    if(users.some(u => u.username === username)){
+
+        error.textContent =
+            "Tên người dùng này đã được sử dụng";
+
+        error.style.display = "block";
+
+        return;
+    }
+
+    if(password.length < 6){
+
+        error.textContent =
+            "Mật khẩu phải có ít nhất 6 ký tự";
+
+        error.style.display = "block";
+
+        return;
+    }
+
+    if(password !== password2){
+
+        error.textContent =
+            "Mật khẩu xác nhận không khớp";
+
+        error.style.display = "block";
+
+        return;
+    }
+
+    const newUser = {
+
+        username:username,
+
+        password:password,
+
+        id:null,
+
+        displayName:null,
+
+        created:Date.now()
+
+    };
+
+    users.push(newUser);
+
+    localStorage.setItem(
+        "wchat_users",
+        JSON.stringify(users)
+    );
+
+    currentUser = newUser;
+
+    localStorage.setItem(
+        "wchat_current",
+        JSON.stringify(currentUser)
+    );
+
+    openSetup();
+
+}
+
+
+function login(){
+
+    const username =
+        document.getElementById("loginUsername")
+        .value.trim()
+        .toLowerCase();
+
+    const password =
+        document.getElementById("loginPassword")
+        .value;
+
+    const error =
+        document.getElementById("loginError");
+
+    const user =
+        users.find(
+            u =>
+                u.username === username &&
+                u.password === password
+        );
+
+    if(!user){
+
+        error.style.display = "block";
+
+        return;
+
+    }
+
+    error.style.display = "none";
+
+    currentUser = user;
+
+    localStorage.setItem(
+        "wchat_current",
+        JSON.stringify(currentUser)
+    );
+
+    if(currentUser.displayName){
+
+        openApp();
+
+    }else{
+
+        openSetup();
+
+    }
+
+}
+
+
+/* ======================================
+   SETUP
+====================================== */
+
+function openSetup(){
+
+    document.getElementById("auth").style.display =
+        "none";
+
+    document.getElementById("setup").style.display =
+        "flex";
+
+}
+
+
+function saveId(){
+
+    let id =
+        document.getElementById("userId")
+        .value
+        .trim()
+        .toLowerCase();
+
+    const error =
+        document.getElementById("idError");
+
+    if(!id.startsWith("@")){
+
+        id = "@" + id;
+
+    }
+
+    if(!/^@[a-z0-9_]{3,20}$/.test(id)){
+
+        error.textContent =
+            "ID chỉ được chứa chữ cái, số và dấu _";
+
+        error.style.display = "block";
+
+        return;
+
+    }
+
+    if(
+        users.some(
+            u =>
+                u.id === id &&
+                u.username !== currentUser.username
+        )
+    ){
+
+        error.textContent =
+            "ID này đã được sử dụng";
+
+        error.style.display = "block";
+
+        return;
+
+    }
+
+    error.style.display = "none";
+
+    currentUser.id = id;
+
+    document.getElementById("idStep").style.display =
+        "none";
+
+    document.getElementById("displayStep").style.display =
+        "block";
+
+}
+
+
+function finishSetup(){
+
+    const display =
+        document.getElementById("displayName")
+        .value
+        .trim();
+
+    if(display.length < 2){
+
+        alert("Tên hiển thị quá ngắn!");
+
+        return;
+
+    }
+
+    currentUser.displayName = display;
+
+    users =
+        users.map(
+            u =>
+                u.username === currentUser.username
+                    ? currentUser
+                    : u
+        );
+
+    localStorage.setItem(
+        "wchat_users",
+        JSON.stringify(users)
+    );
+
+    localStorage.setItem(
+        "wchat_current",
+        JSON.stringify(currentUser)
+    );
+
+    openApp();
+
+}
+
+
+/* ======================================
+   APP
+====================================== */
+
+function openApp(){
+
+    document.getElementById("setup").style.display =
+        "none";
+
+    document.getElementById("auth").style.display =
+        "none";
+
+    document.getElementById("app").style.display =
+        "block";
+
+    updateProfile();
+
+    renderChatList();
+
+}
+
+
+function updateProfile(){
+
+    const first =
+        currentUser.displayName
+        .charAt(0)
+        .toUpperCase();
+
+    document.getElementById("myAvatar")
+        .textContent = first;
+
+    document.getElementById("myDisplay")
+        .textContent = currentUser.displayName;
+
+    document.getElementById("myUsername")
+        .textContent = currentUser.id;
+
+    document.getElementById("modalAvatar")
+        .textContent = first;
+
+    document.getElementById("modalDisplay")
+        .textContent = currentUser.displayName;
+
+    document.getElementById("modalUsername")
+        .textContent =
+            currentUser.id + " • " + currentUser.username;
+
+}
+
+
+/* ======================================
+   CHAT LIST
+====================================== */
+
+function getChatKey(a,b){
+
+    return [a,b]
+        .sort()
+        .join("::");
+
+}
+
+
+function renderChatList(){
+
+    const list =
+        document.getElementById("chatList");
+
+    list.innerHTML = "";
+
+    const conversations =
+        Object.keys(chats)
+        .filter(key =>
+            key.includes(currentUser.username)
+        );
+
+    if(conversations.length === 0){
+
+        list.innerHTML = `
+            <div style="
+                padding:20px;
+                text-align:center;
+                color:#687386;
+                font-size:13px;
+            ">
+                Chưa có cuộc trò chuyện
+            </div>
+        `;
+
+        return;
+
+    }
+
+    conversations.forEach(key => {
+
+        const parts = key.split("::");
+
+        const other =
+            parts[0] === currentUser.username
+                ? parts[1]
+                : parts[0];
+
+        const user =
+            users.find(
+                u => u.username === other
+            );
+
+        if(!user) return;
+
+        const last =
+            chats[key][chats[key].length - 1];
+
+        const div =
+            document.createElement("div");
+
+        div.className = "chat";
+
+        div.onclick =
+            () => openConversation(user);
+
+        div.innerHTML = `
+
+            <div class="avatar">
+                ${user.displayName
+                    .charAt(0)
+                    .toUpperCase()}
+            </div>
+
+            <div class="chatInfo">
+
+                <div class="chatName">
+                    ${escapeHTML(user.displayName)}
+                </div>
+
+                <div class="chatPreview">
+                    ${last
+                        ? escapeHTML(last.text || "📎 Tệp")
+                        : "Bắt đầu trò chuyện"}
+                </div>
+
+            </div>
+        `;
+
+        list.appendChild(div);
+
+    });
+
+}
+
+
+/* ======================================
+   OPEN CHAT
+====================================== */
+
+function openConversation(user){
+
+    selectedUser = user;
+
+    document.getElementById("topName")
+        .textContent = user.displayName;
+
+    document.getElementById("topStatus")
+        .textContent = "● Đang hoạt động";
+
+    document.getElementById("topAvatar")
+        .textContent =
+            user.displayName.charAt(0).toUpperCase();
+
+    renderMessages();
+
+}
+
+
+function renderMessages(){
+
+    const box =
+        document.getElementById("messages");
+
+    box.innerHTML = "";
+
+    if(!selectedUser){
+
+        box.innerHTML = `
+            <div class="emptyChat">
+                <div class="big">💬</div>
+                <h2>Chào mừng đến với WChat</h2>
+                <p>Chọn một người để bắt đầu trò chuyện.</p>
+            </div>
+        `;
+
+        return;
+
+    }
+
+    const key =
+        getChatKey(
+            currentUser.username,
+            selectedUser.username
+        );
+
+    const messages =
+        chats[key] || [];
+
+    if(messages.length === 0){
+
+        box.innerHTML = `
+            <div class="emptyChat">
+                <div class="big">👋</div>
+                <h2>
+                    Bắt đầu trò chuyện với
+                    ${escapeHTML(selectedUser.displayName)}
+                </h2>
+                <p>Hãy gửi tin nhắn đầu tiên!</p>
+            </div>
+        `;
+
+        return;
+
+    }
+
+    messages.forEach(msg => {
+
+        const div =
+            document.createElement("div");
+
+        div.className =
+            "message " +
+            (
+                msg.from === currentUser.username
+                    ? "mine"
+                    : ""
+            );
+
+        if(msg.type === "file"){
+
+            div.innerHTML = `
+
+                <div class="fileMessage">
+
+                    <div class="fileIcon">
+                        📎
+                    </div>
+
+                    <div>
+                        <b>
+                            ${escapeHTML(msg.fileName)}
+                        </b>
+
+                        <div style="font-size:11px;opacity:.7">
+                            ${formatBytes(msg.size)}
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="messageMeta">
+                    ${formatTime(msg.time)}
+                </div>
+            `;
+
+        }else{
+
+            div.innerHTML = `
+
+                ${escapeHTML(msg.text)}
+
+                <div class="messageMeta">
+                    ${formatTime(msg.time)}
+                </div>
+            `;
+
+        }
+
+        box.appendChild(div);
+
+    });
+
+    box.scrollTop = box.scrollHeight;
+
+}
+
+
+/* ======================================
+   SEND MESSAGE
+====================================== */
+
+function sendMessage(){
+
+    if(!selectedUser) return;
+
+    const input =
+        document.getElementById("messageInput");
+
+    const text =
+        input.value.trim();
+
+    if(!text) return;
+
+    const key =
+        getChatKey(
+            currentUser.username,
+            selectedUser.username
+        );
+
+    if(!chats[key])
+        chats[key] = [];
+
+    chats[key].push({
+
+        from:currentUser.username,
+
+        text:text,
+
+        type:"text",
+
+        time:Date.now()
+
+    });
+
+    localStorage.setItem(
+        "wchat_chats",
+        JSON.stringify(chats)
+    );
+
+    input.value = "";
+
+    renderMessages();
+
+    renderChatList();
+
+}
+
+
+function handleEnter(e){
+
+    if(e.key === "Enter"){
+
+        e.preventDefault();
+
+        sendMessage();
+
+    }
+
+}
+
+
+/* ======================================
+   FILE
+====================================== */
+
+function sendFile(){
+
+    if(!selectedUser) return;
+
+    const file =
+        document.getElementById("fileInput")
+        .files[0];
+
+    if(!file) return;
+
+    const MAX =
+        1024 * 1024 * 1024;
+
+    if(file.size > MAX){
+
+        alert("File vượt quá giới hạn 1 GB!");
+
+        return;
+
+    }
+
+    const key =
+        getChatKey(
+            currentUser.username,
+            selectedUser.username
+        );
+
+    if(!chats[key])
+        chats[key] = [];
+
+    chats[key].push({
+
+        from:currentUser.username,
+
+        type:"file",
+
+        fileName:file.name,
+
+        size:file.size,
+
+        time:Date.now()
+
+    });
+
+    localStorage.setItem(
+        "wchat_chats",
+        JSON.stringify(chats)
+    );
+
+    renderMessages();
+
+    renderChatList();
+
+}
+
+
+/* ======================================
+   SEARCH
+====================================== */
+
+function searchUsers(){
+
+    const query =
+        document.getElementById("searchInput")
+        .value
+        .trim()
+        .toLowerCase();
+
+    const results =
+        document.getElementById("searchResults");
+
+    if(!query){
+
+        results.style.display = "none";
+
+        return;
+
+    }
+
+    const found =
+        users.filter(u =>
+
+            u.username !== currentUser.username &&
+
+            (
+                u.username.includes(query) ||
+                (u.id && u.id.includes(query)) ||
+                (u.displayName &&
+                    u.displayName
+                    .toLowerCase()
+                    .includes(query))
+            )
+
+        );
+
+    results.innerHTML = "";
+
+    if(found.length === 0){
+
+        results.innerHTML = `
+            <div style="
+                padding:15px;
+                color:#8993a5;
+            ">
+                Không tìm thấy người dùng.
+            </div>
+        `;
+
+    }
+
+    found.forEach(user => {
+
+        const div =
+            document.createElement("div");
+
+        div.className = "result";
+
+        div.onclick =
+            () => {
+
+                openConversation(user);
+
+                results.style.display = "none";
+
+                document.getElementById("searchInput")
+                    .value = "";
+
+            };
+
+        div.innerHTML = `
+
+            <div class="avatar">
+                ${user.displayName
+                    .charAt(0)
+                    .toUpperCase()}
+            </div>
+
+            <div>
+
+                <b>
+                    ${escapeHTML(user.displayName)}
+                </b>
+
+                <div style="
+                    color:#8993a5;
+                    font-size:12px;
+                ">
+                    ${escapeHTML(user.id || "@unknown")}
+                </div>
+
+            </div>
+        `;
+
+        results.appendChild(div);
+
+    });
+
+    results.style.display = "block";
+
+}
+
+
+/* ======================================
+   PROFILE
+====================================== */
+
+function openProfile(){
+
+    document.getElementById("profileModal")
+        .style.display = "flex";
+
+}
+
+function openChatInfo(){
+
+    if(!selectedUser) return;
+
+    document.getElementById("chatInfoModal")
+        .style.display = "flex";
+
+}
+
+function closeModal(id){
+
+    document.getElementById(id)
+        .style.display = "none";
+
+}
+
+
+/* ======================================
+   CALL
+====================================== */
+
+function startCall(type){
+
+    if(!selectedUser){
+
+        alert("Hãy chọn một cuộc trò chuyện trước.");
+
+        return;
+
+    }
+
+    document.getElementById("callScreen")
+        .style.display = "flex";
+
+    document.getElementById("callName")
+        .textContent = selectedUser.displayName;
+
+    document.getElementById("callAvatar")
+        .textContent =
+            selectedUser.displayName
+            .charAt(0)
+            .toUpperCase();
+
+    document.getElementById("callStatus")
+        .textContent =
+            type === "video"
+                ? "Đang bắt đầu cuộc gọi video..."
+                : "Đang gọi thoại...";
+
+}
+
+function endCall(){
+
+    document.getElementById("callScreen")
+        .style.display = "none";
+
+}
+
+
+/* ======================================
+   EMOJI
+====================================== */
+
+function addEmoji(){
+
+    const input =
+        document.getElementById("messageInput");
+
+    input.value += " 😊";
+
+    input.focus();
+
+}
+
+
+/* ======================================
+   LOGOUT
+====================================== */
+
+function logout(){
+
+    currentUser = null;
+
+    selectedUser = null;
+
+    localStorage.removeItem("wchat_current");
+
+    location.reload();
+
+}
+
+
+/* ======================================
+   UTILITIES
+====================================== */
+
+function formatTime(time){
+
+    return new Date(time)
+        .toLocaleTimeString(
+            "vi-VN",
+            {
+                hour:"2-digit",
+                minute:"2-digit"
+            }
+        );
+
+}
+
+
+function formatBytes(bytes){
+
+    if(bytes === 0) return "0 Bytes";
+
+    const sizes =
+        ["Bytes","KB","MB","GB"];
+
+    const i =
+        Math.floor(
+            Math.log(bytes) /
+            Math.log(1024)
+        );
+
+    return (
+        bytes /
+        Math.pow(1024,i)
+    ).toFixed(2)
+    + " "
+    + sizes[i];
+
+}
+
+
+function escapeHTML(text){
+
+    return String(text)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+
+}
+
+</script>
+
+</body>
+</html>
